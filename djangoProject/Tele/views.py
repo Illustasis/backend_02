@@ -16,12 +16,13 @@ def hot(request):
                 'image':telelist[i].image,
                 'year':telelist[i].year,
                 'nation':telelist[i].nation,
-                'id':telelist[i].tele_id
+                'id':telelist[i].tele_id,
             })
             i=i+1
         return JsonResponse({'errno':0,'msg':'查询热门电影','data':hottelelist})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
 
 @csrf_exempt
 def high(request):
@@ -44,6 +45,7 @@ def high(request):
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
 
+
 @csrf_exempt
 def collect(request):
     if request.method == 'POST':
@@ -54,6 +56,7 @@ def collect(request):
         return JsonResponse({'errno':0, 'msg': "收藏成功"})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
 
 @csrf_exempt
 def uncollect(request):
@@ -69,6 +72,8 @@ def uncollect(request):
             return JsonResponse({'errno':200, 'msg': "取消收藏失败"})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+
 @csrf_exempt
 def collection(request):
     if request.method == 'POST':
@@ -89,6 +94,7 @@ def collection(request):
         return JsonResponse({'errno':0, 'data':collect})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+    
 
 @csrf_exempt
 def detail(request):

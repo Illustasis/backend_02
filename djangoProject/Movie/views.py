@@ -42,6 +42,7 @@ def high(request):
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
 
+
 @csrf_exempt
 def collect(request):
     if request.method == 'POST':
@@ -52,6 +53,7 @@ def collect(request):
         return JsonResponse({'errno':0, 'msg': "收藏成功"})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
 
 @csrf_exempt
 def uncollect(request):
@@ -67,6 +69,8 @@ def uncollect(request):
             return JsonResponse({'errno':200, 'msg': "取消收藏失败"})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+
 @csrf_exempt
 def collection(request):
     if request.method == 'POST':
@@ -85,6 +89,7 @@ def collection(request):
         return JsonResponse({'errno':0, 'data':collect})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
 
 @csrf_exempt
 def detail(request):
