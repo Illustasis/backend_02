@@ -255,7 +255,9 @@ def reply(request):
         author_id = request.POST.get('author_id')
         text = request.POST.get('text')
         reply_to = request.POST.get('reply_to')
+        reply_to = int(reply_to)
         if reply_to == 0:
+            print('yes')
             level1_reply = 0    # 一级评论
         else:
             parent_reply = Reply.objects.get(reply_id=reply_to)
