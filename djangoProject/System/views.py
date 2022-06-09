@@ -225,6 +225,7 @@ def get_report(request):
         data = []
         for e in Report.objects.all():
             data.append({
+                'report_id': e.report_id,
                 'reporter_id': e.reporter_id,
                 'reporter_name': User.objects.get(user_id=e.reporter_id).name,
                 'report_title': e.report_title,
