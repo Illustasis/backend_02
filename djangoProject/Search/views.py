@@ -325,7 +325,6 @@ def article_search(request):
                         'userid': user.user_id,
                         'date': article.date,
                         'title': article.title,
-                        'content': article.text,
                         'usericon': img,
                     })
                 return JsonResponse({'errno': 0, 'msg': '按文章名查询', 'data': articlelist})
