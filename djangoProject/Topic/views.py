@@ -38,22 +38,25 @@ def detail(request):
         topic_id = request.POST.get('topic_id')
         user_id = request.POST.get('user_id')
         topic = Topic.objects.get(topic_id=topic_id)
-        collect = Collect.objects.filter(resource_id=topic_id,user_id=user_id,column=4)
-        people = Collect.objects.filter(resource_id=topic_id,column=4)
-        articles = Article.objects.filter(resource_id=topic_id,column=4)
+        topic.heat = topic.heat + 1
+        topic.save()
+        collect = Collect.objects.filter(resource_id=topic_id, user_id=user_id, column=4)
+        people = Collect.objects.filter(resource_id=topic_id, column=4)
+        articles = Article.objects.filter(resource_id=topic_id, column=4)
         if collect.exists():
             return JsonResponse(
                 {'errno': 0,
                  'data': {
-                     'name':topic.name,'id':topic_id,'intro':topic.introduction,'people':len(people),'passage':len(articles)
-                     },
+                     'name': topic.name, 'id': topic_id, 'intro': topic.introduction, 'people': len(people),
+                     'passage': len(articles)
+                 },
                  'collect': 1})
         else:
             return JsonResponse(
                 {'errno': 0,
                  'data': {
                      'name': topic.name, 'id': topic_id, 'intro': topic.introduction,
-                     'people':0,'passage':0
+                     'people': 0, 'passage': 0
                  },
                  'collect': 0})
     else:

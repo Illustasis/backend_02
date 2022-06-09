@@ -8,6 +8,8 @@ def bookcomment(request):
     if request.method == 'POST':
         article_id = request.POST.get('article_id')
         article=Article.objects.get(article_id=article_id)
+        article.heat = article.heat + 1
+        article.save()
         print(Article.objects.all().values('article_id','author_id'))
         book=Book.objects.get(book_id=article.resource_id)
         user=User.objects.get(user_id=article.author_id)
@@ -48,6 +50,8 @@ def dt(request):
     if request.method == 'POST':
         article_id = request.POST.get('article_id')
         article=Article.objects.get(article_id=article_id)
+        article.heat = article.heat + 1
+        article.save()
         topic = Topic.objects.get(topic_id=article.resource_id)
         user=User.objects.get(user_id=article.author_id)
         collect = Collect.objects.filter(column=4,resource_id=topic.topic_id)
@@ -85,6 +89,8 @@ def moviecomment(request):
     if request.method == 'POST':
         article_id = request.POST.get('article_id')
         article=Article.objects.get(article_id=article_id)
+        article.heat = article.heat + 1
+        article.save()
         print(Article.objects.all().values('article_id','author_id'))
         movie=Movie.objects.get(movie_id=article.resource_id)
         user=User.objects.get(user_id=article.author_id)
@@ -126,6 +132,8 @@ def telecomment(request):
     if request.method == 'POST':
         article_id = request.POST.get('article_id')
         article=Article.objects.get(article_id=article_id)
+        article.heat = article.heat + 1
+        article.save()
         tele=Tele.objects.get(tele_id=article.resource_id)
         user=User.objects.get(user_id=article.author_id)
         score=Score.objects.get(column=3,resource_id=article.resource_id,user_id=article.author_id)

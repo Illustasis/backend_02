@@ -101,6 +101,8 @@ def detail(request):
         tele_id = request.POST.get('tele_id')  # 获取图书ID
         user_id = request.POST.get('user_id')  # 获取用户ID
         tele = Tele.objects.get(tele_id=tele_id)
+        tele.heat = tele.heat + 1
+        tele.save()
         users_id = Collect.objects.filter(resource_id=tele_id,column=3,user_id=user_id)
         star = Score.objects.filter(column=3, resource_id=tele_id, user_id=user_id)
         myscore = 0.0

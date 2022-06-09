@@ -87,6 +87,8 @@ def detail(request):
         book_id = request.POST.get('book_id')  # 获取图书ID
         user_id = request.POST.get('user_id')  # 获取用户ID
         book = Book.objects.get(book_id=book_id)
+        book.heat = book.heat + 1
+        book.save()
         users_id = Collect.objects.filter(resource_id=book_id,column=1,user_id=user_id)# 查询关注此书的用户
         star = Score.objects.filter(column=1, resource_id=book_id,user_id=user_id)
         myscore=0.0

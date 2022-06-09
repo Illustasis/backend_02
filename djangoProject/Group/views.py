@@ -44,6 +44,8 @@ def detail(request):
         user_id = request.POST.get('user_id')  # 获取图书ID
         group_id = request.POST.get('group_id')  # 获取用户ID
         group = Group.objects.get(group_id=group_id)
+        group.heat = group.heat + 1
+        group.save()
         users_id = Collect.objects.filter(resource_id=group_id,column=5,user_id=user_id)# 查询关注此书的用户
         managers = GroupManager.objects.filter(group_id = group_id)
         manager_list = []

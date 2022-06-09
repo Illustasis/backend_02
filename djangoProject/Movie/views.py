@@ -98,6 +98,8 @@ def detail(request):
         movie_id = request.POST.get('movie_id')  # 获取图书ID
         user_id = request.POST.get('user_id')  # 获取用户ID
         movie = Movie.objects.get(movie_id=movie_id)
+        movie.heat=movie.heat+1
+        movie.save()
         users_id = Collect.objects.filter(resource_id=movie_id,column=2,user_id=user_id)
         star = Score.objects.filter(column=2, resource_id=movie_id, user_id=user_id)
         myscore = 0.0
