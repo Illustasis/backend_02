@@ -276,7 +276,7 @@ def myGroup(request):
                 'img': group.image,
                 'member': group.member
             }))
-        return JsonResponse({'errno': 0, 'msg': '查询加入的小组', 'data': data})
+        return JsonResponse({'errno': 0, 'msg': '成功查询加入的小组', 'data': data})
 
 
 # 加入/退出小组
