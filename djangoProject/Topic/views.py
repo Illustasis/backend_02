@@ -129,6 +129,31 @@ def my_article(request):
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
 
+@csrf_exempt
+def hotdt(request):
+    if request.method == 'POST':
+        articles = Article.objects.filter(column=4).order_by('-heat')
+        passage=[]
+        for article in articles:
+            topic = Topic.objects.get(topic_id=article.resource_id)
+            user = User.objects.get(user_id=article.author_id)
+            img = ''
+            icon = Photos.objects.filter(column=1, resource_id=article.author_id)
+            if icon.exists():
+                img = Photos.objects.get(column=1, resource_id=article.author_id).url
+            passage.append({
+                'id':article.article_id,
+                'content':article.text,
+                'topic':topic.name,
+                'topicid':topic.topic_id,
+                'username':user.name,
+                'userid':user.user_id,
+                'date':article.date,
+                'usericon':img
+            })
+        return JsonResponse({'errno':0, 'data':passage})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
 
 @csrf_exempt
 def hot_article(request):
@@ -139,16 +164,15 @@ def hot_article(request):
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=4, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=article.author_id)
             if icon.exists():
-                img = Photos.objects.get(column=4, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=article.author_id).url
             article_list.append({
                 'id':article.article_id,
                 'username': user.name,
                 'userid': user.user_id,
                 'date': article.date,
                 'content': article.text,
-                'title': article.title,
                 'usericon': img,
 
             })
@@ -161,23 +185,67 @@ def hot_article(request):
 def new_article(request):
     if request.method == 'POST':
         topic_id = request.POST.get('topic_id')
-        articles = Article.objects.filter(column=4).filter(resource_id=topic_id).order_by('-heat')
+        articles = Article.objects.filter(column=4).filter(resource_id=topic_id).order_by('-date')
         article_list = []
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=4, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=article.author_id)
             if icon.exists():
-                img = Photos.objects.get(column=4, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=article.author_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
                 'userid': user.user_id,
                 'date': article.date,
                 'content': article.text,
-                'title': article.title,
                 'usericon': img,
+
             })
         return JsonResponse({'errno': 0, 'data': article_list})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def recommend(request):
+    if request.method == 'POST':
+        topic_id = request.POST.get('topic_id')
+        articles = Article.objects.filter(column=4).filter(resource_id=topic_id).order_by('-likes')
+        passage=[]
+        for article in articles:
+            passage.append({
+                'id':article.article_id,
+                'title':article.text
+            })
+        return JsonResponse({'errno':0, 'data':passage})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def collectpassage(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        collect = Collect.objects.filter(user_id=user_id, column=4)
+        passage = []
+        for item in collect:
+            topic = Topic.objects.get(topic_id=item.resource_id)
+            articles = Article.objects.filter(column=4,resource_id=topic.topic_id).order_by('-heat')
+            for article in articles:
+                user = User.objects.get(user_id=article.author_id)
+                img = ''
+                icon = Photos.objects.filter(column=1, resource_id=article.author_id)
+                if icon.exists():
+                    img = Photos.objects.get(column=1, resource_id=article.author_id).url
+                passage.append({
+                    'id':article.article_id,
+                    'content':article.text,
+                    'topic':topic.name,
+                    'topicid':topic.topic_id,
+                    'username':user.name,
+                    'userid':user.user_id,
+                    'date':article.date,
+                    'usericon':img
+                })
+        return JsonResponse({'errno':0, 'data':passage})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})

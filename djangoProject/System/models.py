@@ -95,11 +95,13 @@ class Like(models.Model):
 
 class Reply(models.Model):
     reply_id = models.AutoField(primary_key=True)
-    article_id = models.IntegerField(default=0)
+    article_id = models.IntegerField(default=0)     # 回复所属文章
     text = models.CharField(max_length=80)
     likes = models.IntegerField(default=0)
-    author_id = models.IntegerField(default=0)
-    reply_to = models.IntegerField(default=0)
+    author_id = models.IntegerField(default=0)       # 回复的发起者
+    reply_to = models.IntegerField(default=0)       # 回复的对象，0为文章自身，其余为其他回复的reply_id
+    level1_reply = models.IntegerField(default=0)       # 回复所属一级回复，若本身为一级回复则置0
+
 
 
 class Photos(models.Model):
@@ -121,3 +123,13 @@ class GroupArticle(models.Model):
     group_id = models.IntegerField(default=0)
     article_id = models.IntegerField(default=0)
     type = models.IntegerField(default=0)
+
+
+# 验证码记录表：每获取一次验证码创建一条（类似日志），故同一邮箱可有多条记录，只是验证码和时间不同
+class Email(models.Model):
+    code = models.CharField(max_length=20)      # 验证码
+    email = models.EmailField(max_length=50)
+    user_id = models.IntegerField(default=0)
+    status = models.IntegerField(default=0)     # 0：未激活，1：已激活
+    add_time = models.DateTimeField(auto_now_add=True)      # 添加时间
+

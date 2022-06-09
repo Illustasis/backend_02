@@ -1,25 +1,80 @@
+import datetime
 import json
+from random import Random
 
+import pytz
+from django.conf import settings
 from django.core import serializers
+from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from System.models import *
 
 
-# 注册
+# 生成随机字符串
+def random_str():
+    str = ''
+    chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
+    length = len(chars) - 1
+    random = Random()
+    for i in range(8):
+        str += chars[random.randint(0, length)]
+    return str
+
+
+# 获得验证码
 @csrf_exempt
-def register(request):  # 继承请求类
+def get_code(request):
     print(request)
     if request.method == 'POST':  # 判断请求方式是否为 POST（此处要求为POST方式）
-        username = request.POST.get('username')  # 获取请求体中的请求数据
         password_1 = request.POST.get('password_1')
         password_2 = request.POST.get('password_2')
+        email = request.POST.get('email')
+        name = request.POST.get('name')
+        if Email.objects.filter(email=email).exists():
+            status = Email.objects.filter(email=email).first().status
+        else:
+            status = 0
         if password_1 != password_2:  # 若两次输入的密码不同，则返回错误码errno和描述信息msg
             return JsonResponse({'errno': 1002, 'msg': "两次输入的密码不同"})
+        elif status == 1:
+            return JsonResponse({'errno': 1002, 'msg': "邮箱已注册"})
+        elif User.objects.filter(name=name).exists():
+            return JsonResponse({'errno': 1002, 'msg': "用户名已注册"})
         else:
-            # 新建 Author 对象，赋值用户名和密码并保存
-            new_user = User(name=username, password=password_1)
-            new_user.save()  # 一定要save才能保存到数据库中
+            code = random_str()
+            Email.objects.create(code=code, email=email)  # 数据库保存验证码
+            email_title = "注册激活"
+            email_body = "您的邮箱注册验证码为：{0}, 该验证码有效时间为两分钟，请及时进行验证。".format(code)
+            check = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])  # 发送邮件
+            if not check:
+                return JsonResponse({'errno': 1002, 'msg': "验证码发送失败"})
+            else:
+                return JsonResponse({'errno': 1000, 'msg': "验证码已发送"})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+
+@csrf_exempt
+def register(request):
+    print(request)
+    if request.method == 'POST':
+        code = request.POST.get('code')
+        email = request.POST.get('email')
+        name = request.POST.get('name')
+        password = request.POST.get('password')
+        get_by_email = Email.objects.filter(email=email).order_by('-add_time').first()      # 最新验证码记录
+        difftime = (datetime.datetime.now(tz=pytz.UTC)-get_by_email.add_time).seconds      # 最新验证码距今多久
+        # print(difftime)
+        if get_by_email.code != code:
+            return JsonResponse({'errno': 1002, 'msg': "验证码错误"})
+        elif difftime > 300:
+            return JsonResponse({'errno': 1002, 'msg': "验证码已失效"})
+        else:
+            User.objects.create(name=name, password=password)       # 添加新用户
+            # 更新验证码记录表里的状态和用户id属性
+            new_user = User.objects.get(name=name)
+            Email.objects.filter(email=email).update(status=1, user_id=new_user.user_id)
             return JsonResponse({'errno': 0, 'msg': "注册成功"})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
@@ -167,33 +222,16 @@ def add_report(request):
 @csrf_exempt
 def get_report(request):
     if request.method == 'GET':
-        reports = Report.objects.all().values()
-        report_list = list(reports)
-        return JsonResponse({'errno': 0, 'data': report_list})
+        data = []
+        for e in Report.objects.all():
+            data.append({
+                'reporter_id': e.reporter_id,
+                'reporter_name': User.objects.get(user_id=e.reporter_id).name,
+                'report_title': e.report_title,
+                'report_reason': e.report_reason,
+                'result': e.result,
+            })
+        print(data)
+        return JsonResponse({'errno': 0, 'data': data})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
-
-
-# 处理举报
-@csrf_exempt
-def deal_report(request):
-    if request.method == 'POST':
-        report_id = request.POST.get('report_id')
-        type = request.POST.get('type')  # 1为保留原文章，2为删除原文章
-        report = Report.objects.get(report_id=report_id)
-        if report is not None:
-            if type == '1':
-                report.delete()
-                return JsonResponse({'errno': 0, 'msg': '举报已处理，文章已保留'})
-            elif type == '2':
-                article_id = report.article_id
-                article = Article.objects.get(article_id=article_id)
-                article.delete()
-                report.delete()
-                return JsonResponse({'errno': 0, 'msg': '举报已处理，文章已删除'})
-            else:
-                return JsonResponse({'errno': 1000, 'msg': '未找到文章'})
-        else:
-            return JsonResponse({'errno': 1001, 'msg': '未找到举报信息'})
-    else:
-        return JsonResponse({'errno': 1002, 'msg': '请求方式错误'})

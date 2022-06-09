@@ -154,6 +154,7 @@ def telecomment(request):
             'id':tele.tele_id,
             'nation': tele.nation,
             'img':tele.image,
+            'star': tele.score,
             'year':tele.year
         }
         return JsonResponse({'errno':0,'msg':'查询影评详情','data':{'passage':content,'resource':resource}})
@@ -180,6 +181,8 @@ def iflike(request):
         user_id = request.POST.get('user_id')
         article_id = request.POST.get('article_id')
         like = Like.objects.filter(resource_id=article_id, column=1, user_id=user_id)
+        likes = Like.objects.filter(resource_id=article_id, column=1).values('user_id')
+        print(likes)
         if like.exists():
             return JsonResponse({'errno': 0, 'data':1})
         else:
@@ -231,5 +234,95 @@ def like(request):
         like = Like(resource_id=article_id, column=1, user_id=user_id)
         like.save()
         return JsonResponse({'errno':0, 'msg': "点赞成功"})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+# 发表回复（对文章或对另一个回复）
+@csrf_exempt
+def reply(request):
+    if request.method == 'POST':
+        article_id = request.POST.get('article_id')
+        author_id = request.POST.get('author_id')
+        text = request.POST.get('text')
+        reply_to = request.POST.get('reply_to')
+        if reply_to == 0:
+            level1_reply = 0    # 一级评论
+        else:
+            parent_reply = Reply.objects.get(reply_id=reply_to)
+            if parent_reply.reply_to == 0:  # 二级评论
+                level1_reply = parent_reply.reply_id
+            else:  # 二级评论的子评论
+                level1_reply = parent_reply.level1_reply  # 归为一级评论的子评论
+        Reply.objects.create(article_id=article_id, author_id=author_id, text=text, reply_to=reply_to, level1_reply=level1_reply)
+        return JsonResponse({'errno': 0, 'msg': "回复成功"})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+
+# 文章页面获取所有对该文章的回复
+@csrf_exempt
+def get_reply(request):
+    if request.method == 'POST':
+        article_id = request.POST.get('article_id')
+        data = []
+        level1_replylist = Reply.objects.filter(article_id=article_id, reply_to=0)      # 一级评论列表
+        for e in level1_replylist:
+            children = []
+            children_replylist = Reply.objects.filter(level1_reply=e.reply_id)     # 该一级评论的子评论
+            for f in children_replylist:
+                replyed_userid = Reply.objects.get(reply_id=f.reply_to).author_id
+                usericon = get_avatar(f.author_id)
+                children.append({
+                    'reply_id': f.reply_id,
+                    'author_id': f.author_id,
+                    'usericon': usericon,
+                    'text': f.text,
+                    'like': f.likes,
+                    'replyed_userid': replyed_userid,
+                    'replyed_username': User.objects.get(user_id=replyed_userid).name
+                })
+            usericon = get_avatar(e.author_id)
+            data.append({
+                'reply_id': e.reply_id,
+                'author_id': e.author_id,
+                'usericon': usericon,
+                'text': e.text,
+                'like': e.likes,
+                'chlidren': children
+            })
+        return JsonResponse({'errno': 0, 'data': data})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+
+# 个人页面获取回复通知
+@csrf_exempt
+def get_message(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        articles = Article.objects.filter(author_id=user_id)       # 用户发表的文章
+        replies = Reply.objects.filter(author_id=user_id)       # 用户发表的回复
+        data = []
+        for i in articles:
+            article_replylist = Reply.objects.filter(article_id=i.article_id)       # 该文章的所有回复
+            for j in article_replylist:
+                usericon = get_avatar(j.author_id)
+                data.append({
+                    'author_id': j.author_id,
+                    'author_name': User.objects.get(user_id=j.author_id).name,
+                    'usericon': usericon,
+                     'article_id': i.article_id
+                })
+        for i in replies:
+            reply_replylist = Reply.objects.filter(reply_to=i.reply_id)     # 该回复的所有回复
+            for j in reply_replylist:
+                usericon = get_avatar(j.author_id)
+                data.append({
+                    'author_id': j.author_id,
+                    'author_name': User.objects.get(user_id=j.author_id).name,
+                    'usericon': usericon,
+                     'article_id': i.article_id
+                })
+        return JsonResponse({'errno': 0, 'data': data})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})

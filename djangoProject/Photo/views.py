@@ -28,14 +28,12 @@ def upload_photo(request):
             elif resource_type == '2':  # 种类是文章图片时
                 resource3 = Photos.objects.create(url='/upload/'+image_name, resource_id=resource_id, column=resource_type)
                 resource3.save()
-                return JsonResponse({'errno':0,'msg':'图片上传成功'})
-            else:
-                return JsonResponse({'errno':100,'msg':'资源种类有限'})
+                return JsonResponse({'errno':0,'msg':'图片上传成功','data':{'url':'/upload/'+image_name}})
         else:
             if resource_type == '1' or resource_type == '2':
                 resource4 = Photos.objects.create(url='/upload/'+image_name, resource_id=resource_id, column=resource_type)
                 resource4.save()
-                return JsonResponse({'errno':200,'msg':'上传图片成功'})
+                return JsonResponse({'errno':0,'msg':'上传图片成功','data':{'url':'/upload/'+image_name}})
             else:
                 return JsonResponse({'errno':100,'msg':'资源种类有限'})
     else:
@@ -57,3 +55,9 @@ def get_photo(request):
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
 
 
+def get_avatar(user_id):
+    img = ''
+    icon = Photos.objects.filter(column=1, resource_id=user_id)
+    if icon.exists():
+        img = Photos.objects.get(column=1, resource_id=user_id).url
+    return img

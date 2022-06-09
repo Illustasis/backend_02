@@ -14,4 +14,5 @@ urlpatterns = [
     path('article/hot', hot_article),
     path('article/new', new_article),
     path('mypassage', my_article),
+    path('recommend', recommend),
 ]

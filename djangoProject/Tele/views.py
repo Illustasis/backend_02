@@ -28,7 +28,7 @@ def hot(request):
 def high(request):
     if request.method == 'POST':
         num = request.POST.get('num')
-        telelist=Tele.objects.all().order_by('score').all()
+        telelist=Tele.objects.all().order_by('-score').all()
         hightelelist=[]
         i=0
         while i<int(num):
@@ -101,25 +101,39 @@ def detail(request):
         tele_id = request.POST.get('tele_id')  # 获取图书ID
         user_id = request.POST.get('user_id')  # 获取用户ID
         tele = Tele.objects.get(tele_id=tele_id)
-        users_id = Collect.objects.filter(resource_id=tele_id,column=3,user_id=user_id)# 查询关注此书的用户
-        # 生成关注用户ID列表(int数据类型)
+        users_id = Collect.objects.filter(resource_id=tele_id,column=3,user_id=user_id)
+        star = Score.objects.filter(column=3, resource_id=tele_id, user_id=user_id)
+        myscore = 0.0
+        if star.exists():
+            star = Score.objects.get(column=3, resource_id=tele_id, user_id=user_id)
+            myscore = star.score
+        people = Score.objects.filter(column=3, resource_id=tele_id)
+        peoplenum = len(people)
+        rank_list = []
+        i = 1.0
+        while i < 6:
+            rank_num = len(Score.objects.filter(column=3, resource_id=tele_id, score=i))
+            rank_list.append(rank_num)
+            i = i + 1.0
         if users_id.exists(): # 查找该用户是否在列表内，在则返回已关注，否则返回未关注
             return JsonResponse(
                 {'errno': 0,
                  'data':{
                  'tele_id': tele.tele_id, 'name': tele.name, 'image': tele.image, 'nation':tele.nation,
                  'actor': tele.actor, 'year':tele.year, 'intro': tele.introduction, 'score': tele.score, 'heat': tele.heat},
-                 'collect': 1})
+                 'collect': 1,'evaluate':myscore,'people':peoplenum,'list':rank_list})
         else:
             return JsonResponse(
                 {'errno': 0,
                  'data': {
-                      'tele_id': tele.tele_id, 'name': tele.name, 'image': tele.image, 'nation':tele.nation,
-                       'actor': tele.actor, 'year':tele.year, 'intro': tele.introduction, 'score': tele.score, 'heat': tele.heat},
-                 'collect': 0})
+                     'tele_id': tele.tele_id, 'name': tele.name, 'image': tele.image, 'nation': tele.nation,
+                     'actor': tele.actor, 'year': tele.year, 'intro': tele.introduction, 'score': tele.score,
+                     'heat': tele.heat},
+                 'collect': 0, 'evaluate': myscore, 'people': peoplenum, 'list': rank_list})
 
     else:
         return JsonResponse({'errno': 1000})
+
 
 
 @csrf_exempt
@@ -186,14 +200,14 @@ def commentTele(request):
 def hot_article(request):
     if request.method == 'POST':
         tele_id = request.POST.get('tele_id')
-        articles = Article.objects.filter(column=2).filter(resource_id=tele_id).order_by('-heat')
+        articles = Article.objects.filter(column=3).filter(resource_id=tele_id).order_by('-heat')
         article_list = []
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=3, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=user.user_id)
             if icon.exists():
-                img = Photos.objects.get(column=3, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
@@ -217,9 +231,9 @@ def new_article(request):
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=3, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=user.user_id)
             if icon.exists():
-                img = Photos.objects.get(column=3, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
@@ -230,5 +244,50 @@ def new_article(request):
                 'usericon': img,
             })
         return JsonResponse({'errno': 0, 'data': article_list})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def hotcomment(request):
+    if request.method == 'POST':
+        articles = Article.objects.filter(column=3).order_by('-heat')
+        # 不确定这里是从早到晚排序还是从晚到早排序，测试时如果遇到相反的可以把order_by后面括号内的'-date'改成'date'
+        article_list = []
+        for article in articles:
+            user_id = article.author_id
+            user = User.objects.get(user_id=user_id)
+            image = Photos.objects.filter(resource_id=user_id, column=1)
+            tele = Tele.objects.get(tele_id=article.resource_id)
+            icon = ""
+            if image.exists():
+                image = Photos.objects.get(resource_id=user_id, column=1)
+                icon = image.url
+            passage = {
+                'username': user.name,
+                'usericon': icon,
+                'id': article.article_id,
+                'telename': tele.name,
+                'teleid': tele.tele_id,
+                'img': tele.image,
+                'title': article.title,
+                'content': article.text,
+            }
+            article_list.append(passage)
+        return JsonResponse({'errno':0, 'data':article_list})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': '失败，请求方式错误'})
+
+@csrf_exempt
+def recommend(request):
+    if request.method == 'POST':
+        tele_id = request.POST.get('tele_id')
+        articles = Article.objects.filter(column=3).filter(resource_id=tele_id).order_by('-likes')
+        passage=[]
+        for article in articles:
+            passage.append({
+                'id':article.article_id,
+                'title':article.title
+            })
+        return JsonResponse({'errno':0, 'data':passage})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})

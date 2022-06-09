@@ -8,6 +8,9 @@ urlpatterns = [
     path('dt',dt),
     path('delete',delete),
     path('like',like),
-path('unlike',unlike),
-path('iflike',iflike),
+    path('unlike',unlike),
+    path('iflike',iflike),
+    path('reply', reply),
+    path('get_reply', get_reply),
+    path('get_message', get_message),
 ]

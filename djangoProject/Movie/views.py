@@ -271,3 +271,18 @@ def hotcomment(request):
         return JsonResponse({'errno':0, 'data':article_list})
     else:
         return JsonResponse({'errno': 1001, 'msg': '失败，请求方式错误'})
+
+@csrf_exempt
+def recommend(request):
+    if request.method == 'POST':
+        movie_id = request.POST.get('movie_id')
+        articles = Article.objects.filter(column=2).filter(resource_id=movie_id).order_by('-likes')
+        passage=[]
+        for article in articles:
+            passage.append({
+                'id':article.article_id,
+                'title':article.title
+            })
+        return JsonResponse({'errno':0, 'data':passage})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})

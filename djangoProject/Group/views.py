@@ -15,7 +15,8 @@ def hotgroup(request):
             hotlist.append({
                 'name': list[i].name,
                 'id': list[i].group_id,
-                'member':list[i].member
+                'member':list[i].member,
+                'img':list[i].image
             })
             i = i + 1
         return JsonResponse({'errno': 0, 'msg': '查询热门小组', 'data': hotlist})
