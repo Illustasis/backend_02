@@ -267,17 +267,16 @@ def big(request):
 def myGroup(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
-        groups = Collect.objects.filter(column=5,user_id=user_id).values('resource_id')
-        group_list = []
-        for group_id in groups:
-            group = Group.objects.get(group_id = group_id)
-            group_list.append(({
+        data = []
+        for e in Collect.objects.filter(column=5, user_id=user_id):
+            group = Group.objects.get(group_id=e.resource_id)
+            data.append(({
                 'name': group.name,
-                'id':group.group_id,
-                'img':group.image,
-                'member':group.member
+                'id': group.group_id,
+                'img': group.image,
+                'member': group.member
             }))
-        return JsonResponse({'errno': 0, 'msg': '查询加入的小组', 'data': group_list})
+        return JsonResponse({'errno': 0, 'msg': '成功查询加入的小组', 'data': data})
 
 
 # 加入/退出小组
@@ -293,10 +292,16 @@ def dealGroup(request):
                 return JsonResponse({'errno': 1000,'msg': '该用户已在小组中'})
             else:
                 user.delete()
+                group = Group.objects.get(group_id=group_id)
+                group.member = group.member - 1
+                group.save()
                 return JsonResponse({'errno': 0, 'msg': '退出小组成功'})
         else:
             if type == '1':
-                new_user = Collect.objects.create(user_id=user_id, resource_id=group_id, column=5)
+                Collect.objects.create(user_id=user_id, resource_id=group_id, column=5)
+                group = Group.objects.get(group_id=group_id)
+                group.member = group.member+1
+                group.save()
                 return JsonResponse({'errno': 0, 'msg': '加入小组成功'})
             else:
                 return JsonResponse({'errno': 1000, 'msg': '该用户不在小组中，退出失败'})
