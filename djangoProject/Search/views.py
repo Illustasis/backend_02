@@ -43,10 +43,10 @@ def book_search(request):
                     if temp in booklist:
                         continue
                     booklist.append(temp)
-                return JsonResponse({'errno': 0, 'msg': '按书名查询', 'data': booklist})
             books = Book.objects.filter(introduction__icontains=search_content)
             if books.exists():
                 for b in books:
+                    star = Score.objects.filter(resource_id=b.book_id, column=1)
                     temp = {
                         'name': b.name,
                         'publisher': b.press,
@@ -233,23 +233,24 @@ def topic_search(request):
                 for t in topics:
                     topiclist.append({
                         'name': t.name,
-                        'id': t.topic_id
+                        'id': t.topic_id,
+                        'intro':t.introduction,
                     })
-                return JsonResponse({'errno': 0, 'msg': '按话题名查询', 'data': topiclist})
-            else:
-                return JsonResponse({'errno': 1001, 'msg': '未找到相关话题'})
-        elif search_id == '42':  # 按话题简介
             topics = Topic.objects.filter(introduction__icontains=search_content)
             if topics.exists():
-                topiclist = []
                 for t in topics:
-                    topiclist.append({
+                    params ={
                         'name': t.name,
-                        'id': t.topic_id
-                    })
+                        'id': t.topic_id,
+                        'intro':t.introduction
+                    }
+                    if params in topiclist:
+                        continue
+                    topiclist.append(params)
+            if len(topics)!=0:
                 return JsonResponse({'errno': 0, 'msg': '按话题简介查询', 'data': topiclist})
             else:
-                return JsonResponse({'errno': 1001, 'msg': '未找到相关话题'})
+                return JsonResponse({'errno': 100, 'msg': '未找到相关话题'})
         else:
             return JsonResponse({'errno': 1002, 'msg': '查询编码错误'})
 
@@ -267,11 +268,13 @@ def group_search(request):
                 for g in groups:
                     grouplist.append({
                         'name': g.name,
-                        'id': g.group_id
+                        'id': g.group_id,
+                        'member':g.member,
+                        'img':g.image
                     })
                 return JsonResponse({'errno': 0, 'msg': '按小组名查询', 'data': grouplist})
             else:
-                return JsonResponse({'errno': 1001, 'msg': '未找到相关小组'})
+                return JsonResponse({'errno': 100, 'msg': '未找到相关小组'})
         else:
             return JsonResponse({'errno': 1002, 'msg': '查询编码错误'})
 
@@ -283,20 +286,48 @@ def article_search(request):
         search_id = request.POST.get('search_id')
         search_content = request.POST.get('search_content')
         if search_id == '61':  # 按文章名
-            articles = Article.objects.filter(title__icontains=search_content,column=4)
+            articles = Article.objects.filter(text__icontains=search_content,column=4)
             if articles.exists():
                 articlelist = []
-                for a in articles:
-                    articlelist.append(a)
+                for article in articles:
+                    topic = Topic.objects.get(topic_id=article.resource_id)
+                    user = User.objects.get(user_id=article.author_id)
+                    img = ''
+                    icon = Photos.objects.filter(column=1, resource_id=article.author_id)
+                    if icon.exists():
+                        img = Photos.objects.get(column=1, resource_id=article.author_id).url
+                    articlelist.append({
+                        'id': article.article_id,
+                        'content': article.text,
+                        'topic': topic.name,
+                        'topicid': topic.topic_id,
+                        'username': user.name,
+                        'userid': user.user_id,
+                        'date': article.date,
+                        'usericon': img
+                    })
                 return JsonResponse({'errno': 0, 'msg': '按文章名查询', 'data': articlelist})
             else:
                 return JsonResponse({'errno': 1001, 'msg': '未找到相关文章'})
         if search_id == '62':  # 按文章名
-            articles = Article.objects.filter(title__icontains=search_content,column=5)
+            articles = Article.objects.filter(title__icontains=search_content, column=5)
             if articles.exists():
                 articlelist = []
                 for a in articles:
-                    articlelist.append(a)
+                    user = User.objects.get(user_id=article.author_id)
+                    img = ''
+                    icon = Photos.objects.filter(column=5, resource_id=user.user_id)
+                    if icon.exists():
+                        img = Photos.objects.get(column=5, resource_id=user.user_id).url
+                    article_list.append({
+                        'id': article.article_id,
+                        'username': user.name,
+                        'userid': user.user_id,
+                        'date': article.date,
+                        'title': article.title,
+                        'content': article.text,
+                        'usericon': img,
+                    })
                 return JsonResponse({'errno': 0, 'msg': '按文章名查询', 'data': articlelist})
             else:
                 return JsonResponse({'errno': 1001, 'msg': '未找到相关文章'})
