@@ -1,5 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+
+from Photo.views import get_avatar
 from System.models import *
 import json
 
@@ -275,6 +277,7 @@ def get_reply(request):
                 children.append({
                     'reply_id': f.reply_id,
                     'author_id': f.author_id,
+                    'author_name': User.objects.get(user_id=f.author_id).name,
                     'usericon': usericon,
                     'text': f.text,
                     'like': f.likes,
@@ -285,6 +288,7 @@ def get_reply(request):
             data.append({
                 'reply_id': e.reply_id,
                 'author_id': e.author_id,
+                'author_name': User.objects.get(user_id=e.author_id).name,
                 'usericon': usericon,
                 'text': e.text,
                 'like': e.likes,
