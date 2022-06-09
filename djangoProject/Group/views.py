@@ -300,3 +300,16 @@ def dealGroup(request):
                 return JsonResponse({'errno': 0, 'msg': '加入小组成功'})
             else:
                 return JsonResponse({'errno': 1000, 'msg': '该用户不在小组中，退出失败'})
+
+
+# 申请成为小组管理员
+@csrf_exempt
+def group_manager(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        group_id = request.POST.get('group_id')
+        GroupManager.objects.create(user_id=user_id, group_id=group_id)
+        return JsonResponse({'errno': 0, 'msg': '申请成功'})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
