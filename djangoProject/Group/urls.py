@@ -14,4 +14,5 @@ urlpatterns = [
     path('mygroup', myGroup),
     path('detail', detail),
     path('dealGroup', dealGroup),
+    path('group_manager', group_manager),
 ]
