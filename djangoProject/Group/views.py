@@ -78,9 +78,9 @@ def hot_article(request):
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=5, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=user.user_id)
             if icon.exists():
-                img = Photos.objects.get(column=5, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id':article.article_id,
                 'username': user.name,
@@ -104,9 +104,9 @@ def new_article(request):
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=5, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=user.user_id)
             if icon.exists():
-                img = Photos.objects.get(column=5, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
@@ -296,7 +296,8 @@ def dealGroup(request):
                 return JsonResponse({'errno': 0, 'msg': '退出小组成功'})
         else:
             if type == '1':
-                new_user = Collect.objects.create(user_id=user_id, resource_id=group_id, column=5)
+                new_user = Collect(user_id=user_id, resource_id=group_id, column=5)
+                new_user.save()
                 return JsonResponse({'errno': 0, 'msg': '加入小组成功'})
             else:
                 return JsonResponse({'errno': 1000, 'msg': '该用户不在小组中，退出失败'})
