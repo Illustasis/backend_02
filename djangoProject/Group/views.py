@@ -278,3 +278,25 @@ def myGroup(request):
                 'member':group.member
             }))
         return JsonResponse({'errno': 0, 'msg': '查询加入的小组', 'data': group_list})
+
+
+# 加入/退出小组
+@csrf_exempt
+def dealGroup(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        group_id = request.POST.get('group_id')
+        type = request.POST.get('type')  # 1为添加，2为去除
+        user = Collect.objects.filter(user_id=user_id).filter(resource_id=group_id).filter(column=5)
+        if user.exists():
+            if type == '1':
+                return JsonResponse({'errno': 1000,'msg': '该用户已在小组中'})
+            else:
+                user.delete()
+                return JsonResponse({'errno': 0, 'msg': '退出小组成功'})
+        else:
+            if type == '1':
+                new_user = Collect.objects.create(user_id=user_id, resource_id=group_id, column=5)
+                return JsonResponse({'errno': 0, 'msg': '加入小组成功'})
+            else:
+                return JsonResponse({'errno': 1000, 'msg': '该用户不在小组中，退出失败'})

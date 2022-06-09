@@ -12,5 +12,5 @@ urlpatterns = [
     path('uploadtopic', savetopic),
     path('addreport', add_report),
     path('getreport', get_report),
-    path('deal_report', deal_report),
+    path('deal_report',deal_report),
 ]

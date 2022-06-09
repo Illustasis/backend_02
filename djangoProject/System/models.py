@@ -50,9 +50,11 @@ class Group(models.Model):
     heat = models.IntegerField(default=0)  # 点击量
     member = models.IntegerField(default=0)  #成员数量
 
+
 class GroupManager(models.Model):
     group_id = models.IntegerField(default=0)
     user_id = models.IntegerField(default=0)
+
 
 class Topic(models.Model):
     topic_id = models.AutoField(primary_key=True)
@@ -101,7 +103,6 @@ class Reply(models.Model):
     author_id = models.IntegerField(default=0)       # 回复的发起者
     reply_to = models.IntegerField(default=0)       # 回复的对象，0为文章自身，其余为其他回复的reply_id
     level1_reply = models.IntegerField(default=0)       # 回复所属一级回复，若本身为一级回复则置0
-
 
 
 class Photos(models.Model):

@@ -235,3 +235,28 @@ def get_report(request):
         return JsonResponse({'errno': 0, 'data': data})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+
+# 处理举报
+@csrf_exempt
+def deal_report(request):
+    if request.method == 'POST':
+        report_id = request.POST.get('report_id')
+        type = request.POST.get('type')  # 1为保留原文章，2为删除原文章
+        report = Report.objects.get(report_id=report_id)
+        if report is not None:
+            if type == '1':
+                report.delete()
+                return JsonResponse({'errno': 0, 'msg': '举报已处理，文章已保留'})
+            elif type == '2':
+                article_id = report.article_id
+                article = Article.objects.get(article_id=article_id)
+                article.delete()
+                report.delete()
+                return JsonResponse({'errno': 0, 'msg': '举报已处理，文章已删除'})
+            else:
+                return JsonResponse({'errno': 1000, 'msg': '未找到文章'})
+        else:
+            return JsonResponse({'errno': 1001, 'msg': '未找到举报信息'})
+    else:
+        return JsonResponse({'errno': 1002, 'msg': '请求方式错误'})
