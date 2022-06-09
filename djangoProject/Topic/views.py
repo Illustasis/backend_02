@@ -40,11 +40,12 @@ def detail(request):
         topic = Topic.objects.get(topic_id=topic_id)
         collect = Collect.objects.filter(resource_id=topic_id,user_id=user_id,column=4)
         people = Collect.objects.filter(resource_id=topic_id,column=4)
+        articles = Article.objects.filter(resource_id=topic_id,column=4)
         if collect.exists():
             return JsonResponse(
                 {'errno': 0,
                  'data': {
-                     'name':topic.name,'id':topic_id,'intro':topic.introduction,'people':len(people)
+                     'name':topic.name,'id':topic_id,'intro':topic.introduction,'people':len(people),'passage':len(articles)
                      },
                  'collect': 1})
         else:
