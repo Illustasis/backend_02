@@ -183,7 +183,6 @@ def hot_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -210,7 +209,6 @@ def new_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -240,7 +238,6 @@ def hotcomment(request):
                 'img': book.image,
                 'title': article.title,
                 'content': article.text,
-                'thestyle':''
             }
             article_list.append(passage)
         return JsonResponse({'errno':0, 'data':article_list})
@@ -252,6 +249,21 @@ def my_article(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         articles = Article.objects.filter(column=1).filter(author_id=user_id).order_by('-date')
+        passage=[]
+        for article in articles:
+            passage.append({
+                'id':article.article_id,
+                'title':article.title
+            })
+        return JsonResponse({'errno':0, 'data':passage})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def recommend(request):
+    if request.method == 'POST':
+        book_id = request.POST.get('book_id')
+        articles = Article.objects.filter(column=1).filter(resource_id=book_id).order_by('-likes')
         passage=[]
         for article in articles:
             passage.append({

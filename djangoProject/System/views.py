@@ -154,7 +154,7 @@ def add_report(request):
     if request.method == 'POST':
         report_title = request.POST.get('report_title')
         report_reason = request.POST.get('report_reason')
-        reporter_id = request.POST.get('reporter_id')
+        reporter_id = request.POST.get('user_id')
         article_id = request.POST.get('article_id')
         Report.objects.create(report_title=report_title, report_reason=report_reason, reporter_id=reporter_id,
                               article_id=article_id)

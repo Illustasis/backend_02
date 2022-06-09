@@ -27,3 +27,16 @@ def detail(request):
             return JsonResponse({'errno': 100, 'msg': '用户不存在'})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def isadmin(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id', '')
+        user = User.objects.filter(user_id=user_id)
+        if user.exists():
+            user = User.objects.get(user_id=user_id)
+            return JsonResponse({'errno': 0, 'msg': '查询到用户信息','data':user.isAdmin})
+        else:
+            return JsonResponse({'errno': 100, 'msg': '用户不存在'})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})

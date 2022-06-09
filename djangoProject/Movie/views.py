@@ -82,9 +82,10 @@ def collection(request):
             collect.append({
                 'id': movie.movie_id,
                 'name':movie.name,
-                'director':movie.director,
+                'info':'[导演]'+movie.director,
                 'image':movie.image,
                 'star':movie.score,
+                'year':movie.year
             })
         return JsonResponse({'errno':0, 'data':collect})
     else:
@@ -154,9 +155,9 @@ def hot_article(request):
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=2, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=user.user_id)
             if icon.exists():
-                img = Photos.objects.get(column=2, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
@@ -165,7 +166,6 @@ def hot_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -181,9 +181,9 @@ def new_article(request):
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=2, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=user.user_id)
             if icon.exists():
-                img = Photos.objects.get(column=2, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
@@ -192,7 +192,6 @@ def new_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -242,3 +241,33 @@ def my_article(request):
             return JsonResponse({'errno': 0, 'data': passage})
         else:
             return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def hotcomment(request):
+    if request.method == 'POST':
+        articles = Article.objects.filter(column=2).order_by('-heat')
+        # 不确定这里是从早到晚排序还是从晚到早排序，测试时如果遇到相反的可以把order_by后面括号内的'-date'改成'date'
+        article_list = []
+        for article in articles:
+            user_id = article.author_id
+            user = User.objects.get(user_id=user_id)
+            image = Photos.objects.filter(resource_id=user_id, column=1)
+            movie = Movie.objects.get(movie_id=article.resource_id)
+            icon = ""
+            if image.exists():
+                image = Photos.objects.get(resource_id=user_id, column=1)
+                icon = image.url
+            passage = {
+                'username': user.name,
+                'usericon': icon,
+                'id': article.article_id,
+                'moviename': movie.name,
+                'movieid': movie.movie_id,
+                'img': movie.image,
+                'title': article.title,
+                'content': article.text,
+            }
+            article_list.append(passage)
+        return JsonResponse({'errno':0, 'data':article_list})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': '失败，请求方式错误'})

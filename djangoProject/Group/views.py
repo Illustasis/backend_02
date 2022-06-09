@@ -8,13 +8,14 @@ import json
 def hotgroup(request):
     if request.method == 'POST':
         num = request.POST.get('num')
-        list = Group.objects.all().order_by('heat').all()
+        list = Group.objects.all().order_by('-heat').all()
         hotlist = []
         i = 0
         while i < int(num) and i < len(list):
             hotlist.append({
                 'name': list[i].name,
-                'id': list[i].group_id
+                'id': list[i].group_id,
+                'member':list[i].member
             })
             i = i + 1
         return JsonResponse({'errno': 0, 'msg': '查询热门小组', 'data': hotlist})
@@ -36,6 +37,36 @@ def upload_passage(request):
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
 
+@csrf_exempt
+def detail(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')  # 获取图书ID
+        group_id = request.POST.get('group_id')  # 获取用户ID
+        group = Group.objects.get(group_id=group_id)
+        users_id = Collect.objects.filter(resource_id=group_id,column=5,user_id=user_id)# 查询关注此书的用户
+        managers = GroupManager.objects.filter(group_id = group_id)
+        manager_list = []
+        if managers.exists():
+            for manager in managers:
+                user = User.objects.get(user_id=manager.user_id)
+                manager_list.append({
+                    'user_id':user.user_id,
+                    'name':user.name
+                })
+        if users_id.exists(): # 查找该用户是否在列表内，在则返回已关注，否则返回未关注
+            return JsonResponse(
+                {'errno': 0,
+                 'data':{
+                 'group_id': group.group_id, 'name': group.name, 'image': group.image,
+                'member':group.member, 'heat': group.heat,
+                 'join': 1,'manager':manager_list}})
+        else:
+            return JsonResponse(
+                {'errno': 0,
+                 'data': {
+                     'group_id': group.group_id, 'name': group.name, 'image': group.image,
+                     'member': group.member, 'heat': group.heat,
+                     'join': 0,'manager':manager_list}})
 
 @csrf_exempt
 def hot_article(request):
@@ -57,7 +88,6 @@ def hot_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -84,7 +114,6 @@ def new_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -157,14 +186,19 @@ def search_kind(request):
             articlelist = []
             for a in article_in:  # 这里我把article的全部属性(除了column和resource_id)都返回了,需要用哪些就保留哪些
                 article = Article.objects.get(article_id=a.article_id)
+                user = User.objects.get(user_id=article.author_id)
+                img = ''
+                icon = Photos.objects.filter(column=5, resource_id=user.user_id)
+                if icon.exists():
+                    img = Photos.objects.get(column=5, resource_id=user.user_id).url
                 articlelist.append({
                     'id': article.article_id,
-                    'title': article.title,
-                    'text': article.text,
-                    'author_id': article.author_id,
+                    'username': user.name,
+                    'userid': user.user_id,
                     'date': article.date,
-                    'heat': article.heat,
-                    'likes': article.likes
+                    'content': article.text,
+                    'title': article.title,
+                    'usericon': img,
                 })
                 if kind == '1':
                     return JsonResponse({'errno': 0, 'msg': '查询置顶帖子', 'data': articlelist})
@@ -179,3 +213,67 @@ def search_kind(request):
                 return JsonResponse({'errno': 1004, 'msg': 'kind类型错误'})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def hotpassage(request):
+    if request.method == 'POST':
+        num = request.POST.get('num')
+        articles = Article.objects.filter(column=5).order_by('-heat')
+        article_list = []
+        i = 0
+        for article in articles:
+            user = User.objects.get(user_id=article.author_id)
+            img = ''
+            icon = Photos.objects.filter(column=5, resource_id=user.user_id)
+            if icon.exists():
+                img = Photos.objects.get(column=5, resource_id=user.user_id).url
+            article_list.append({
+                'id': article.article_id,
+                'username': user.name,
+                'userid': user.user_id,
+                'date': article.date,
+                'title':article.title,
+                'content': article.text,
+                'usericon': img,
+            })
+            i = i+1
+            if i == num:
+                break
+        return JsonResponse({'errno': 0, 'data': article_list})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def big(request):
+    if request.method == 'POST':
+        num = request.POST.get('num')
+        list = Group.objects.all().order_by('-member').all()
+        biglist = []
+        i = 0
+        while i < int(num) and i < len(list):
+            biglist.append({
+                'name': list[i].name,
+                'id': list[i].group_id,
+                'member': list[i].member,
+                'img': list[i].image
+            })
+            i = i + 1
+        return JsonResponse({'errno': 0, 'msg': '查询最多人的小组', 'data': biglist})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+
+@csrf_exempt
+def myGroup(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        groups = Collect.objects.filter(column=5,user_id=user_id).values('resource_id')
+        group_list = []
+        for group_id in groups:
+            group = Group.objects.get(group_id = group_id)
+            group_list.append(({
+                'name': group.name,
+                'id':group.group_id,
+                'img':group.image,
+                'member':group.member
+            }))
+        return JsonResponse({'errno': 0, 'msg': '查询加入的小组', 'data': group_list})

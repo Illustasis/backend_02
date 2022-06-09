@@ -150,7 +150,7 @@ def hot_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
+
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -177,7 +177,6 @@ def new_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:

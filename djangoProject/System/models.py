@@ -48,7 +48,11 @@ class Group(models.Model):
     name = models.CharField(max_length=80)
     image: str = models.CharField(max_length=200)  # 封面图片
     heat = models.IntegerField(default=0)  # 点击量
+    member = models.IntegerField(default=0)  #成员数量
 
+class GroupManager(models.Model):
+    group_id = models.IntegerField(default=0)
+    user_id = models.IntegerField(default=0)
 
 class Topic(models.Model):
     topic_id = models.AutoField(primary_key=True)

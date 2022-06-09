@@ -79,7 +79,6 @@ def collection(request):
     if request.method == 'POST':
         user_id = request.POST.get('user_id')
         collections = Collect.objects.filter(user_id=user_id,column=3)
-        print(collections)
         collect=[]
         for item in collections:
             tele = Tele.objects.get(tele_id=item.resource_id)
@@ -87,7 +86,7 @@ def collection(request):
                 'id': tele.tele_id,
                 'name':tele.name,
                 'year':tele.year,
-                'nation':tele.nation,
+                'info':'['+tele.nation+']',
                 'image':tele.image,
                 'star':tele.score,
             })
@@ -156,6 +155,7 @@ def my_article(request):
     if request.method == 'POST':
         if request.method == 'POST':
             user_id = request.POST.get('user_id')
+            users = Article.objects.filter(column=3).values('author_id')
             articles = Article.objects.filter(column=3).filter(author_id=user_id).order_by('-date')
             passage = []
             for article in articles:
@@ -202,7 +202,6 @@ def hot_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
@@ -229,7 +228,6 @@ def new_article(request):
                 'content': article.text,
                 'title': article.title,
                 'usericon': img,
-                'thestyle': ''
             })
         return JsonResponse({'errno': 0, 'data': article_list})
     else:
