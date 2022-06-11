@@ -166,6 +166,8 @@ def hot_article(request):
         articles = Article.objects.filter(column=4).filter(resource_id=topic_id).order_by('-heat')
         article_list = []
         for article in articles:
+            if article.author_id == -1:
+                article.delete()
             user = User.objects.get(user_id=article.author_id)
             img = ''
             icon = Photos.objects.filter(column=1, resource_id=article.author_id)
@@ -192,6 +194,8 @@ def new_article(request):
         articles = Article.objects.filter(column=4).filter(resource_id=topic_id).order_by('-date')
         article_list = []
         for article in articles:
+            if article.author_id == -1:
+                article.delete()
             user = User.objects.get(user_id=article.author_id)
             img = ''
             icon = Photos.objects.filter(column=1, resource_id=article.author_id)
@@ -217,6 +221,8 @@ def recommend(request):
         articles = Article.objects.filter(column=4).filter(resource_id=topic_id).order_by('-likes')
         passage=[]
         for article in articles:
+            if article.author_id == -1:
+                article.delete()
             passage.append({
                 'id':article.article_id,
                 'title':article.text
@@ -235,6 +241,8 @@ def collectpassage(request):
             topic = Topic.objects.get(topic_id=item.resource_id)
             articles = Article.objects.filter(column=4,resource_id=topic.topic_id).order_by('-heat')
             for article in articles:
+                if article.author_id == -1:
+                    article.delete()
                 user = User.objects.get(user_id=article.author_id)
                 img = ''
                 icon = Photos.objects.filter(column=1, resource_id=article.author_id)
