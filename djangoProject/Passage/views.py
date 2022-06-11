@@ -256,6 +256,7 @@ def reply(request):
         text = request.POST.get('text')
         reply_to = request.POST.get('reply_to')
         reply_to = int(reply_to)
+        level1_reply = 0
         if reply_to == 0:
             print('yes')
             level1_reply = 0    # 一级评论
@@ -269,7 +270,6 @@ def reply(request):
         return JsonResponse({'errno': 0, 'msg': "回复成功"})
     else:
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
-
 
 # 文章页面获取所有对该文章的回复
 @csrf_exempt
@@ -302,7 +302,7 @@ def get_reply(request):
                 'usericon': usericon,
                 'text': e.text,
                 'like': e.likes,
-                'chlidren': children
+                'children': children
             })
         return JsonResponse({'errno': 0, 'data': data})
     else:
