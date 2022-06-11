@@ -89,6 +89,10 @@ def detail(request):
         book = Book.objects.get(book_id=book_id)
         book.heat = book.heat + 1
         book.save()
+        stars = Score.objects.filter(column=1,resource_id=book_id,user_id=-1)
+        if stars.exists():
+            for star in stars:
+                star.delete()
         users_id = Collect.objects.filter(resource_id=book_id,column=1,user_id=user_id)# 查询关注此书的用户
         star = Score.objects.filter(column=1, resource_id=book_id,user_id=user_id)
         myscore=0.0
