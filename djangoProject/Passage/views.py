@@ -318,14 +318,15 @@ def get_message(request):
         replies = Reply.objects.filter(author_id=user_id)       # 用户发表的回复
         data = []
         for i in articles:
-            article_replylist = Reply.objects.filter(article_id=i.article_id)       # 该文章的所有回复
+            article_replylist = Reply.objects.filter(article_id=i.article_id)      # 该文章的所有回复
             for j in article_replylist:
                 usericon = get_avatar(j.author_id)
                 data.append({
                     'author_id': j.author_id,
                     'author_name': User.objects.get(user_id=j.author_id).name,
                     'usericon': usericon,
-                     'article_id': i.article_id
+                     'article_id': i.article_id,
+                    'column':i.column
                 })
         for i in replies:
             reply_replylist = Reply.objects.filter(reply_to=i.reply_id)     # 该回复的所有回复
@@ -335,7 +336,8 @@ def get_message(request):
                     'author_id': j.author_id,
                     'author_name': User.objects.get(user_id=j.author_id).name,
                     'usericon': usericon,
-                     'article_id': i.article_id
+                     'article_id': i.article_id,
+                    'column': i.column
                 })
         return JsonResponse({'errno': 0, 'data': data})
     else:

@@ -78,6 +78,8 @@ def hot_article(request):
         articles = Article.objects.filter(column=5).filter(resource_id=group_id).order_by('-heat')
         article_list = []
         for article in articles:
+            group_id = article.resource_id
+            group = Group.objects.get(group_id=group_id)
             user = User.objects.get(user_id=article.author_id)
             img = ''
             icon = Photos.objects.filter(column=1, resource_id=user.user_id)
@@ -86,6 +88,7 @@ def hot_article(request):
             article_list.append({
                 'id':article.article_id,
                 'username': user.name,
+                'groupname':group.name,
                 'userid': user.user_id,
                 'date': article.date,
                 'content': article.text,
@@ -104,6 +107,8 @@ def new_article(request):
         articles = Article.objects.filter(column=5).filter(resource_id=group_id).order_by('-date')
         article_list = []
         for article in articles:
+            group_id = article.resource_id
+            group = Group.objects.get(group_id=group_id)
             user = User.objects.get(user_id=article.author_id)
             img = ''
             icon = Photos.objects.filter(column=1, resource_id=user.user_id)
@@ -112,6 +117,7 @@ def new_article(request):
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
+                'groupname': group.name,
                 'userid': user.user_id,
                 'date': article.date,
                 'content': article.text,
@@ -191,9 +197,9 @@ def search_kind(request):
                 article = Article.objects.get(article_id=a.article_id)
                 user = User.objects.get(user_id=article.author_id)
                 img = ''
-                icon = Photos.objects.filter(column=5, resource_id=user.user_id)
+                icon = Photos.objects.filter(column=1, resource_id=user.user_id)
                 if icon.exists():
-                    img = Photos.objects.get(column=5, resource_id=user.user_id).url
+                    img = Photos.objects.get(column=1, resource_id=user.user_id).url
                 articlelist.append({
                     'id': article.article_id,
                     'username': user.name,
@@ -227,9 +233,9 @@ def hotpassage(request):
         for article in articles:
             user = User.objects.get(user_id=article.author_id)
             img = ''
-            icon = Photos.objects.filter(column=5, resource_id=user.user_id)
+            icon = Photos.objects.filter(column=1, resource_id=user.user_id)
             if icon.exists():
-                img = Photos.objects.get(column=5, resource_id=user.user_id).url
+                img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,

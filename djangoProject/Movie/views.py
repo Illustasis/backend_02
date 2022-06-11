@@ -262,6 +262,7 @@ def hotcomment(request):
             passage = {
                 'username': user.name,
                 'usericon': icon,
+                'user_id':user.user_id,
                 'id': article.article_id,
                 'moviename': movie.name,
                 'movieid': movie.movie_id,
