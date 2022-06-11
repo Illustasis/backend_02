@@ -20,8 +20,6 @@ def bookcomment(request):
         article.likes = len(likes)
         article.save()
         reply = Reply.objects.filter(article_id=article_id)
-        for thereply in reply:
-            thereply.delete()
         icon = Photos.objects.filter(resource_id=user.user_id,column=1)
         if icon.exists():
             icon = Photos.objects.get(resource_id=user.user_id,column=1).url
@@ -64,6 +62,8 @@ def dt(request):
         article.save()
         dtNum = Article.objects.filter(column=4,resource_id=topic.topic_id)
         reply = Reply.objects.filter(article_id=article_id)
+        for thereply in reply:
+            thereply.delete()
         icon = Photos.objects.filter(resource_id=user.user_id, column=1)
         if icon.exists():
             icon = Photos.objects.get(resource_id=user.user_id, column=1).url

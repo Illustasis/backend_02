@@ -241,8 +241,6 @@ def collectpassage(request):
             topic = Topic.objects.get(topic_id=item.resource_id)
             articles = Article.objects.filter(column=4,resource_id=topic.topic_id).order_by('-heat')
             for article in articles:
-                if article.author_id == -1:
-                    article.delete()
                 user = User.objects.get(user_id=article.author_id)
                 img = ''
                 icon = Photos.objects.filter(column=1, resource_id=article.author_id)
