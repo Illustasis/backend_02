@@ -5,6 +5,7 @@ urlpatterns = [
     path('bookcomment', bookcomment),
     path('moviecomment', moviecomment),
     path('telecomment', telecomment),
+path('grouppassage', grouppassage),
     path('dt',dt),
     path('delete',delete),
     path('like',like),

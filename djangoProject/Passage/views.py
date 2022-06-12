@@ -172,6 +172,44 @@ def telecomment(request):
         return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
 
 @csrf_exempt
+def grouppassage(request):
+    if request.method == 'POST':
+        article_id = request.POST.get('article_id')
+        article=Article.objects.get(article_id=article_id)
+        article.heat = article.heat + 1
+        article.save()
+        print(Article.objects.all().values('article_id','author_id'))
+        group=Group.objects.get(group_id=article.resource_id)
+        user=User.objects.get(user_id=article.author_id)
+        likes = Like.objects.filter(resource_id=article_id, column=1)
+        article.likes = len(likes)
+        article.save()
+        reply = Reply.objects.filter(article_id=article_id)
+        icon = Photos.objects.filter(resource_id=user.user_id,column=1)
+        if icon.exists():
+            icon = Photos.objects.get(resource_id=user.user_id,column=1).url
+        else:
+            icon = ""
+        content={
+            'username':user.name,
+            'icon':icon,
+            'user_id':user.user_id,
+            'title':article.title,
+            'content':article.text,
+            'date':article.date,
+            'like':article.likes,
+            'reply':len(reply)
+        }
+        resource={
+            'name':group.name,
+            'id':group.group_id,
+            'img':group.image,
+            'member':group.member
+        }
+        return JsonResponse({'errno':0,'msg':'查询书评详情','data':{'passage':content,'resource':resource}})
+    else:
+        return JsonResponse({'errno': 1001, 'msg': "请求方式错误"})
+@csrf_exempt
 def delete(request):
     if request.method == 'POST':
         article_id = request.POST.get('article_id')
@@ -329,7 +367,8 @@ def get_message(request):
                     'column':i.column
                 })
         for i in replies:
-            reply_replylist = Reply.objects.filter(reply_to=i.reply_id)     # 该回复的所有回复
+            reply_replylist = Reply.objects.filter(reply_to=i.reply_id)
+            article = Article.objects.get(article_id=i.article_id)# 该回复的所有回复
             for j in reply_replylist:
                 usericon = get_avatar(j.author_id)
                 data.append({
@@ -337,7 +376,7 @@ def get_message(request):
                     'author_name': User.objects.get(user_id=j.author_id).name,
                     'usericon': usericon,
                      'article_id': i.article_id,
-                    'column': i.column
+                    'column': article.column
                 })
         return JsonResponse({'errno': 0, 'data': data})
     else:

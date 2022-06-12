@@ -234,12 +234,15 @@ def hotpassage(request):
             user = User.objects.get(user_id=article.author_id)
             img = ''
             icon = Photos.objects.filter(column=1, resource_id=user.user_id)
+            group = Group.objects.get(group_id=article.resource_id)
             if icon.exists():
                 img = Photos.objects.get(column=1, resource_id=user.user_id).url
             article_list.append({
                 'id': article.article_id,
                 'username': user.name,
                 'userid': user.user_id,
+                'groupname':group.name,
+                'groupid':group.group_id,
                 'date': article.date,
                 'title':article.title,
                 'content': article.text,
